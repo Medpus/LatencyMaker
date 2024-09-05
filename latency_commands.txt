@@ -1,0 +1,57 @@
+# For latency VR project
+
+# Reminder to set latency to 0 after you're done so you don't screw ove the next person
+# using the gaming PC!
+# I wrote this myself, was unhappy, asked ChatGPT for advice, then I realized
+# it doesn't actually understand anything, so I wrote the final version myself.
+# Since there may or may not be a current qdisc rule, and input (if provided) may or may not
+# be 0, we get the resulting tree of 'if' checks. It ain't pretty, but it's honest work.
+# Also, remember to call source ~/.bashrc to be able to use its (updated) contents!
+# Since this is a bash script, its calls can be used from anywhere after you've done that!
+
+# Function: setlat
+# Correct usage: setlat <x>
+# This function sets the current latency rule, affecting the Ethernet latency on the gaming-PC
+# from our current interface that we specify below
+# (See Settings > Network for this, as entries correspond to the Ethernet cables plugged in).
+# It also prints the result to terminal with time stamp for later documentation.
+# Here's what it does:
+# NB! Here, we assume input is an integer
+# 1. Checks whether input <x> is provided. If not, it complains.
+# 2. Otherwise, <x> was provided. If it is 0, we remove the current rule if possible.
+# 3. Input wasn't 0, so we either change the existing rule or make a new if there isn't one.
+
+setlat() {
+	# check if input parameter for ms was provided. If not, complain!
+  if [ -z "$1" ]; then
+    echo "Usage: setlat <delay-in-miliseconds>"
+  # otherwise...
+  else
+  	# find current latency rule if there is one
+  	interface="enp1s0f0" # the interface from this PC (latency) to gaming PC
+    current_rule=$(sudo tc qdisc show dev "$interface" | grep -c "netem") # netem delay
+    # check if input is 0...
+    if [ "$1" -eq 0 ]; then
+    	# there is no rule, then we cannot change the current rule ...
+    	if [ "$current_rule" -eq 0 ]; then  
+    		echo "Latency is already 0 at $(date)"
+    	# otherwise, there is a rule, so we remove it
+    	else
+    		sudo tc qdisc del dev "$interface" root
+	    	echo "Removed latency rule at $(date)"
+    	fi
+    # input is not 0, so we either make a new rule or change the existing one
+    else
+    	# If no latency rule exists, we add a new one...
+  	  if [ "$current_rule" -eq 0 ]; then
+  	    sudo tc qdisc add dev "$interface" root netem delay "$1ms"
+  	    echo "Added latency rule: $1ms at $(date)"
+			# Otherwise, a latency rule exists, so we change it
+  	  else
+  	    sudo tc qdisc change dev "$interface" root netem delay "$1ms"
+  	    echo "Changed latency rule to: $1ms at $(date)"
+  	  fi
+    fi
+  fi
+}
+export -f setlat

@@ -1,14 +1,5 @@
 # For latency VR project
 
-# Reminder to set latency to 0 after you're done so you don't screw ove the next person
-# using the gaming PC!
-# I wrote this myself, was unhappy, asked ChatGPT for advice, then I realized
-# it doesn't actually understand anything, so I wrote the final version myself.
-# Since there may or may not be a current qdisc rule, and input (if provided) may or may not
-# be 0, we get the resulting tree of 'if' checks. It ain't pretty, but it's honest work.
-# Also, remember to call source ~/.bashrc to be able to use its (updated) contents!
-# Since this is a bash script, its calls can be used from anywhere after you've done that!
-
 # Function: setlat
 # Correct usage: setlat <x>
 # This function sets the current latency rule, affecting the Ethernet latency on the gaming-PC
